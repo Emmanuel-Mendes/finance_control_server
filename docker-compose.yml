@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # Redis para cache e sessões
+  redis:
+    image: redis:7-alpine
+    container_name: app-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - app-network
+
+  # PostgreSQL para banco de dados principal
+  postgres:
+    image: postgres:15-alpine
+    container_name: app-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: meuapp
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: senha123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+  # Adminer - Interface web para PostgreSQL (opcional)
+  adminer:
+    image: adminer:latest
+    container_name: app-adminer
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+
+  # Redis Commander - Interface web para Redis (opcional)
+  redis-commander:
+    image: rediscommander/redis-commander:latest
+    container_name: app-redis-commander
+    restart: unless-stopped
+    environment:
+      REDIS_HOSTS: local:redis:6379
+    ports:
+      - "8083:8083"
+    depends_on:
+      - redis
+    networks:
+      - app-network
+
+# Volumes para persistir dados
+volumes:
+  redis_data:
+  postgres_data:
+
+# Rede para comunicação entre containers
+networks:
+  app-network:
+    driver: bridge
