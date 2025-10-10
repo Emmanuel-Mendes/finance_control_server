@@ -10,8 +10,14 @@ class TaskRepository {
 
     val task get() = _tasks.toList()
 
-    fun save(task: Task){
-        _tasks.add(task)
+    fun save(task: Task): Boolean{
+        if (task.title.isNotEmpty() and task.description.isNotEmpty() and task.userId.isNotEmpty()){
+            _tasks.add(task)
+            return true
+        }
+        else{
+            return false
+        }
     }
     companion object{
         private val _tasks = mutableListOf<Task>()

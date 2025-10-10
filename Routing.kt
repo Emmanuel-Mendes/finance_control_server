@@ -9,6 +9,8 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.logging.Logger
+import io.netty.handler.codec.http.HttpExpectationFailedEvent
 import kotlinx.serialization.ExperimentalSerializationApi
 
 
@@ -22,8 +24,13 @@ fun Application.configureRouting() {
         }
         post(path = "/tasks"){
             val task = call.receive<Task>()
-            repository.save(task)
-            call.respondText("Task was created", status = HttpStatusCode.Created)
+            val response = repository.save(task)
+
+            if (response) {
+                call.respondText("Task was created", status = HttpStatusCode.Created)
+            }else{
+                call.respondText(text = "Task not created", status = HttpStatusCode.FailedDependency)
+            }
         }
     }
 }
